@@ -16,10 +16,9 @@
 # """
 from django.contrib import admin
 from django.urls import path
-from myproject.apps.genius.views import book_list, action_list
+from myproject.apps.genius.views import action_list
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('books/', book_list),
     path('actions/', action_list),
 ]
