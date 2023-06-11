@@ -35,8 +35,6 @@ class Action(models.Model):
     date = models.DateField(verbose_name='date')
     user_action = models.ManyToManyField('User', null=True)
 
-    object = ActionManager()
-
     class Meta:
         db_table = 'Action'
         verbose_name = "Action"

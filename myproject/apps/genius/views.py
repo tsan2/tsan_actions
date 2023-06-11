@@ -1,16 +1,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from .models import Action
+from .models import Action, User
+from rest_framework import viewsets
+from .serializers import ActionSerializer, UserSerializer
 
-def book_list(request):
-    books = [
-        {"title": "The Great Gatsby", "author": "F. Scott Fitzgerald"},
-        {"title": "To Kill a Mockingbird", "author": "Harper Lee"},
-        {"title": "1984", "author": "George Orwell"}
-    ]
-    return JsonResponse({"books": books})
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
-def action_list(request):
-    actions = Action.object.Action()
-    data = {'actions':list(actions.values())}
-    return JsonResponse(data)
+class ActionViewSet(viewsets.ModelViewSet):
+    queryset = Action.objects.all()
+    serializer_class = ActionSerializer

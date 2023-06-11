@@ -12,6 +12,8 @@ psycopg2 = "^2.9.6"
 dotenv-python = "^0.0.1"
 env = "^0.1.0"
 django-orm = "^2.0.5"
+djangorestframework = "^3.14.0"
+django-rest-swagger = "^2.2.0"
 
 
 [build-system]
