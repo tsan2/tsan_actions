@@ -15,7 +15,7 @@ class ActionManager(models.Manager):
         return self
 
 class User(models.Model):
-    id = models.IntegerField(verbose_name='id', primary_key=True, null=False)
+    # id = models.IntegerField(verbose_name='id', primary_key=True, auto_created=True)
     name = models.TextField(verbose_name='name', max_length=15, db_index=True, null=False)
     email = models.EmailField(verbose_name='email', null=False)
     password = models.TextField(verbose_name='password', null=False)
@@ -27,7 +27,7 @@ class User(models.Model):
 
 
 class Action(models.Model):
-    id = models.IntegerField(verbose_name='id', primary_key=True, null=False)
+    # id = models.IntegerField(verbose_name='id', primary_key=True, auto_created=True)
     type_action = models.CharField(choices=ActionType.choices, max_length=255, default=ActionType.WORK, verbose_name='type_action')
     name = models.TextField(verbose_name='name', db_index=True)
     description = models.TextField(blank=True, null=False, verbose_name='description')
