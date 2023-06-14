@@ -1,5 +1,5 @@
 from django.contrib import admin
-from myproject.apps.genius.models import Action, User
+from myproject.apps.genius.models import Action
 
 @admin.register(Action)
 class MyModelAdmin(admin.ModelAdmin):
@@ -8,4 +8,4 @@ class MyModelAdmin(admin.ModelAdmin):
     search_fields = ('name',) # поиск по имени
     ordering = ('-date',) # сортировка по дате создания
 
-admin.site.register(User)
+# admin.site.register(User)

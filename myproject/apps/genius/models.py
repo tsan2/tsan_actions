@@ -1,5 +1,7 @@
 import datetime
 
+from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.db.models import ForeignKey, ManyToManyField
 
@@ -10,20 +12,33 @@ class ActionType(models.TextChoices):
     WORK = 'work'
     REST = 'rest'
 
-class ActionManager(models.Manager):
-    def Action(self):
-        return self
 
-class User(models.Model):
-    # id = models.IntegerField(verbose_name='id', primary_key=True, auto_created=True)
-    name = models.TextField(verbose_name='name', max_length=15, db_index=True, null=False)
-    email = models.EmailField(verbose_name='email', null=False)
-    password = models.TextField(verbose_name='password', null=False)
+class MyUserManager(BaseUserManager):
+    def create_user(self, email, password, **extra_fields):
+        if not email:
+            raise ValueError('The Email field must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save()
+        return user
 
-    class Meta:
-        db_table = 'User'
-        verbose_name = "User"
-        verbose_name_plural = "Users"
+    def create_superuser(self, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, password, **extra_fields)
+
+class MyUser(AbstractBaseUser, PermissionsMixin):
+    name = models.CharField(max_length=15)
+    email = models.EmailField(unique=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['name']
+
+    objects = MyUserManager()
+
+    def __str__(self):
+        return self.email
 
 
 class Action(models.Model):
@@ -33,7 +48,7 @@ class Action(models.Model):
     description = models.TextField(blank=True, null=False, verbose_name='description')
     time = models.TimeField(verbose_name='time')
     date = models.DateField(verbose_name='date')
-    user_action = models.ManyToManyField('User', null=True)
+    user_action = models.ManyToManyField('MyUser', null=True)
 
     class Meta:
         db_table = 'Action'

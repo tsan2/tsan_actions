@@ -20,22 +20,22 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-from myproject.apps.genius.views import UserViewSet, ActionViewSet
+from myproject.apps.genius.views import ActionViewSet
 from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
 
 
-User_list = UserViewSet.as_view({
-    'get': 'list',
-    'post': 'create'
-})
-
-User_detail = UserViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
-    'patch': 'partial_update',
-    'delete': 'destroy'
-})
+# User_list = UserViewSet.as_view({
+#     'get': 'list',
+#     'post': 'create'
+# })
+#
+# User_detail = UserViewSet.as_view({
+#     'get': 'retrieve',
+#     'put': 'update',
+#     'patch': 'partial_update',
+#     'delete': 'destroy'
+# })
 
 Action_list = ActionViewSet.as_view({
     'get': 'list',
@@ -66,8 +66,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('users/', User_list),
-    path('user/<int:pk>/', User_detail),
+    # path('users/', User_list),
+    # path('user/<int:pk>/', User_detail),
     path('actions/', Action_list),
     path('action/<int:pk>/', Action_detail)
 ]
