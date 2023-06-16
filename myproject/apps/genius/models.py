@@ -1,5 +1,7 @@
 import datetime
 
+import jwt
+from django.contrib.auth import get_user_model
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -31,6 +33,8 @@ class MyUserManager(BaseUserManager):
 class MyUser(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=15)
     email = models.EmailField(unique=True)
+    is_staff = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name']
@@ -40,6 +44,7 @@ class MyUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+User = get_user_model()
 
 class Action(models.Model):
     # id = models.IntegerField(verbose_name='id', primary_key=True, auto_created=True)
@@ -48,7 +53,7 @@ class Action(models.Model):
     description = models.TextField(blank=True, null=False, verbose_name='description')
     time = models.TimeField(verbose_name='time')
     date = models.DateField(verbose_name='date')
-    user_action = models.ManyToManyField('MyUser', null=True)
+    user = models.ManyToManyField(User, null=True)
 
     class Meta:
         db_table = 'Action'
@@ -57,6 +62,24 @@ class Action(models.Model):
 
     def __str__(self):
         return f'{self.name}'
+
+    # @property
+    # def token(self):
+    #     return self._generate_jwt_token()
+    #
+    # def _generate_jwt_token(self):
+    #     """
+    #     Генерирует веб-токен JSON, в котором хранится идентификатор этого
+    #     пользователя, срок действия токена составляет 1 день от создания
+    #     """
+    #     dt = datetime.now() + datetime.timedelta(days=1)
+    #
+    #     token = jwt.encode({
+    #         'id': self.pk,
+    #         'exp': int(dt.strftime('%s'))
+    #     }, settings.SECRET_KEY, algorithm='HS256')
+    #
+    #     return token.decode('utf-8')
 
 # qs_date_now = Action.objects.filter(date=str(datetime.date.today())).order_by('-id')
 

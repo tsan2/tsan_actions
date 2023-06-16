@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 from config.config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
 
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'myproject.apps.genius',
+    'rest_framework.authtoken',
     'rest_framework',
     'rest_framework_swagger',
     'drf_yasg',
@@ -54,6 +55,22 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        # другие классы аутентификации здесь
+    ],
+}
+
+SIMPLE_JWT = {
+    'SIGNING_KEY':'my_secret_key',
+    'UPDATE_LAST_LOGIN':True,
+    'ROTATE_REFRESH_TOKENS':True,
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=100),
+}
+
 
 ROOT_URLCONF = 'myproject.urls'
 
@@ -121,6 +138,13 @@ USE_I18N = True
 
 USE_TZ = True
 
+CSRF_COOKIE_SECURE = False
+
+SESSION_COOKIE_SECURE = False
+
+SWAGGER_SETTINGS = {
+    'api_key': 'token qfqf',
+}
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/

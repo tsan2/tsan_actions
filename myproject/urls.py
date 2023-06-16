@@ -14,13 +14,15 @@
 #     1. Import the include() function: from django.urls import include, path
 #     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 # """
+import django
 from django.contrib import admin
 from django.urls import path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-from myproject.apps.genius.views import ActionViewSet
+from myproject.apps.genius.views import ActionViewSet, MyTokenObtainPairView, UserViewSet, UsersViewSetGet, \
+    TokenRefreshView, UsersViewSetGetMe
 from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
 
@@ -36,6 +38,19 @@ from django.views.generic import TemplateView
 #     'patch': 'partial_update',
 #     'delete': 'destroy'
 # })
+
+User_list = UserViewSet.as_view({
+     'post': 'create'
+})
+
+Users_list = UsersViewSetGet.as_view({
+     'get': 'list'
+})
+
+Users_Me = UsersViewSetGetMe.as_view({
+     'get': 'list'
+})
+
 
 Action_list = ActionViewSet.as_view({
     'get': 'list',
@@ -66,8 +81,13 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    # path('users/', User_list),
+    path('register/', User_list),
+    path('users/list/', Users_list),
+    path('me/', Users_Me),
+    # path('login/', UserOperation.as_view({'post':'LoginView'})),
     # path('user/<int:pk>/', User_detail),
+    path('api/token/', MyTokenObtainPairView.as_view()),
+    path('api/refresh_token/', TokenRefreshView.as_view()),
     path('actions/', Action_list),
     path('action/<int:pk>/', Action_detail)
 ]
