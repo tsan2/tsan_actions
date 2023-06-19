@@ -4,15 +4,8 @@ import jwt
 from django.contrib.auth import get_user_model
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
-from django.db import models
+from django.db import models, router
 from django.db.models import ForeignKey, ManyToManyField
-
-
-class ActionType(models.TextChoices):
-    '''type action'''
-
-    WORK = 'work'
-    REST = 'rest'
 
 
 class MyUserManager(BaseUserManager):
@@ -30,9 +23,11 @@ class MyUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(email, password, **extra_fields)
 
+
 class MyUser(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(max_length=15)
     email = models.EmailField(unique=True)
+    balance = models.FloatField(default=0)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
 
@@ -44,42 +39,27 @@ class MyUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+
 User = get_user_model()
 
-class Action(models.Model):
-    # id = models.IntegerField(verbose_name='id', primary_key=True, auto_created=True)
-    type_action = models.CharField(choices=ActionType.choices, max_length=255, default=ActionType.WORK, verbose_name='type_action')
+class Task(models.Model):
     name = models.TextField(verbose_name='name', db_index=True)
     description = models.TextField(blank=True, null=False, verbose_name='description')
     time = models.TimeField(verbose_name='time')
     date = models.DateField(verbose_name='date')
-    user = models.ManyToManyField(User, null=True)
+    price = models.FloatField(verbose_name='price')
+    userFor = models.ManyToManyField(User, related_name='userFor', null=True)
+    userFrom = models.ManyToManyField(User, related_name='userFrom', null=True)
+    userFor_id = models.IntegerField(verbose_name='userFor_id')
+    done = models.BooleanField(verbose_name='done', default=False)
+    # def save(self, force_insert=False, force_update=False, using=None, update_fields=None, *args, **kwargs):
+    #     super(Task, self).save(*args, **kwargs)
 
     class Meta:
-        db_table = 'Action'
-        verbose_name = "Action"
-        verbose_name_plural = "Actions"
+        db_table = 'Task'
+        verbose_name = "Task"
+        verbose_name_plural = "Tasks"
 
     def __str__(self):
         return f'{self.name}'
-
-    # @property
-    # def token(self):
-    #     return self._generate_jwt_token()
-    #
-    # def _generate_jwt_token(self):
-    #     """
-    #     Генерирует веб-токен JSON, в котором хранится идентификатор этого
-    #     пользователя, срок действия токена составляет 1 день от создания
-    #     """
-    #     dt = datetime.now() + datetime.timedelta(days=1)
-    #
-    #     token = jwt.encode({
-    #         'id': self.pk,
-    #         'exp': int(dt.strftime('%s'))
-    #     }, settings.SECRET_KEY, algorithm='HS256')
-    #
-    #     return token.decode('utf-8')
-
-# qs_date_now = Action.objects.filter(date=str(datetime.date.today())).order_by('-id')
 

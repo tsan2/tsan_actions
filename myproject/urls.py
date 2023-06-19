@@ -21,8 +21,8 @@ from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
-from myproject.apps.genius.views import ActionViewSet, MyTokenObtainPairView, UserViewSet, UsersViewSetGet, \
-    TokenRefreshView, UsersViewSetGetMe
+from myproject.apps.genius.views import TaskViewSet, MyTokenObtainPairView, UserViewSet, UsersViewSetGet, \
+    TokenRefreshView, UsersViewSetGetMe, TaskViewList, TaskDone
 from rest_framework_swagger.views import get_swagger_view
 from django.views.generic import TemplateView
 
@@ -52,12 +52,19 @@ Users_Me = UsersViewSetGetMe.as_view({
 })
 
 
-Action_list = ActionViewSet.as_view({
-    'get': 'list',
+Task_list = TaskViewSet.as_view({
     'post': 'create'
 })
 
-Action_detail = ActionViewSet.as_view({
+Task_list_me = TaskViewList.as_view({
+    'get':'ListForMe'
+})
+
+Task_list_you = TaskViewList.as_view({
+    'get':'ListForYou'
+})
+
+Task_detail = TaskViewSet.as_view({
     'get': 'retrieve',
     'put': 'update',
     'patch': 'partial_update',
@@ -81,13 +88,16 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
-    path('register/', User_list),
+    path('users/register/', User_list),
     path('users/list/', Users_list),
-    path('me/', Users_Me),
+    path('users/me/', Users_Me),
     # path('login/', UserOperation.as_view({'post':'LoginView'})),
     # path('user/<int:pk>/', User_detail),
     path('api/token/', MyTokenObtainPairView.as_view()),
     path('api/refresh_token/', TokenRefreshView.as_view()),
-    path('actions/', Action_list),
-    path('action/<int:pk>/', Action_detail)
+    path('tasks/listMe/', Task_list_me),
+    path('tasks/listYou/', Task_list_you),
+    path('tasks/done/<int:task_id>/', TaskDone.as_view()),
+    path('tasks/', Task_list),
+    path('task/<int:pk>/', Task_detail)
 ]

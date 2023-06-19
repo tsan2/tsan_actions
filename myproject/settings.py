@@ -143,7 +143,13 @@ CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
 
 SWAGGER_SETTINGS = {
-    'api_key': 'token qfqf',
+   'SECURITY_DEFINITIONS': {
+      'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+      }
+   }
 }
 
 # Static files (CSS, JavaScript, Images)
@@ -155,3 +161,29 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# EMAIL_HOST = 'smtp.sendgrid.net'
+# EMAIL_HOST_USER = 'nastabutcher.myasn@gmail.com'
+# EMAIL_HOST_PASSWORD = 'TwsafTE123FAkvqwg!'
+# EMAIL_PORT = 587
+# EMAIL_USE_TLS = True
+#
+# FROM_EMAIL = 'papa@gmail.com'
+# EMAIL_ADMIN = 'pfvlfqumf@emltmp.com'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yandex.ru'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = False
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'tsan21@yandex.ru'
+EMAIL_HOST_PASSWORD = 'rayqayhmvvjkncra'
+
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 465
+# EMAIL_HOST_USER = "tsan21@yandex.ru"
+# EMAIL_HOST_PASSWORD = "rayqayhmvvjkncra"
+# EMAIL_USE_TLS = True
+# EMAIL_USE_SSL = False
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

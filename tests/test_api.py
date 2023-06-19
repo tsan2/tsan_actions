@@ -2,7 +2,7 @@ import pytest
 
 from rest_framework import status
 
-from myproject.apps.genius.models import User, Action
+from myproject.apps.genius.models import User, Task
 
 data_users = {'id':1, 'name':'test', 'email':'test@gmail.com', 'password':'test'}
 data_actions = {'id': 1, 'type_action':'work', 'name': 'test', 'description':'test', 'time': '04:53:20', 'date': '2023-06-12'}
@@ -24,7 +24,7 @@ def test_users_create(client):
 def test_action_get(client):
     response = client.get('/actions/')
     assert response.status_code == 200
-    assert len(response.data) == Action.objects.count()
+    assert len(response.data) == Task.objects.count()
 
 @pytest.mark.django_db
 def test_action_create(client, create_user):
@@ -32,4 +32,4 @@ def test_action_create(client, create_user):
     data_actions['user'] = user
     response = client.post('/actions/', data_actions, format='json')
     assert response.status_code == status.HTTP_201_CREATED
-    assert Action.objects.get().name == 'test'
+    assert Task.objects.get().name == 'test'

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-from .models import Action, MyUser, ActionType, User
+from .models import Task, MyUser, User
 
 
 class UserSerializer2(serializers.ModelSerializer):
@@ -22,6 +22,7 @@ class UserSerializer(serializers.Serializer):
         validated_data['is_active'] = False
         validated_data['user_permissions'] = [0]
         validated_data['groups'] = [0]
+        validated_data['balance'] = 0
         validated_data['last_login'] = None
         return User.objects.create(**validated_data)
 
@@ -46,6 +47,7 @@ class UserSerializerMini(serializers.Serializer):
     id = serializers.IntegerField()
     name = serializers.CharField()
     email = serializers.EmailField()
+    balance = serializers.FloatField()
     is_superuser = serializers.BooleanField()
     is_staff = serializers.BooleanField()
     is_active = serializers.BooleanField
@@ -56,22 +58,24 @@ class UserSerializerMini(serializers.Serializer):
     def update(self, instance, validated_data):
         pass
 
-class ActionSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    type_action = serializers.CharField(max_length=255)
+class TaskSerializer(serializers.Serializer):
+    userFor_id = serializers.IntegerField()
+    # userFrom = UserSerializer(many=True, allow_null=True)
     name = serializers.CharField()
     description = serializers.CharField()
+    price = serializers.FloatField()
     time = serializers.TimeField()
     date = serializers.DateField()
 
 
     def create(self, validated_data):
-        return Action.objects.create(**validated_data)
+        return Task.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.type_action = validated_data.get('type_action', instance.type_action)
+        instance.userFor_id = validated_data.get('userFor_id', instance.userFor_id)
         instance.name = validated_data.get('name', instance.name)
         instance.description = validated_data.get('description', instance.description)
+        instance.price = validated_data.get('price', instance.price)
         instance.time = validated_data.get('time', instance.time)
         instance.date = validated_data.get('date', instance.date)
         instance.save()
@@ -83,6 +87,39 @@ class ActionSerializer(serializers.Serializer):
     # class Meta:
     #     model = Action
     #     fields = '__all__'
+
+class MegaTaskSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    userFrom = UserSerializerMini(many=True, allow_null=True)
+    userFor = UserSerializerMini(many=True, allow_null=True)
+    name = serializers.CharField()
+    description = serializers.CharField()
+    price = serializers.FloatField()
+    time = serializers.TimeField()
+    date = serializers.DateField()
+    done = serializers.BooleanField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
+
+class TaskSerializerMini(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+    description = serializers.CharField()
+    price = serializers.FloatField()
+    time = serializers.TimeField()
+    userFor_id = serializers.IntegerField()
+    date = serializers.DateField()
+    done = serializers.BooleanField()
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
 
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod

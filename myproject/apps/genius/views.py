@@ -1,16 +1,3 @@
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView
-from django.core import serializers
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse, QueryDict
-from django.views import View
-from django.views.generic import CreateView
-from keyring import set_password
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import api_view
 from rest_framework.mixins import UpdateModelMixin
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -18,20 +5,17 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from .forms import UserRegisterForm, LoginForm
-from .models import Action, User, MyUser
+from .models import Task, User, MyUser
 from rest_framework import viewsets, permissions, status, mixins, generics
-from .serializers import ActionSerializer, UserSerializer2, MyTokenObtainPairSerializer, UserSerializerMini, UserSerializer, UserLoginSerializer
+from .serializers import TaskSerializer, UserSerializer2, MyTokenObtainPairSerializer, UserSerializerMini, \
+    UserSerializer, UserLoginSerializer, MegaTaskSerializer, TaskSerializerMini
+
 
 class UserViewSet(UpdateModelMixin, mixins.CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
     def create(self, request, *args, **kwargs):
-        # user = request.data.get('user', {})
-        # serializer = self.serializer_class(data=user)
-        # serializer.is_valid(raise_exception=True)
-        # serializer.save()
-        # return Response(serializer.data, status=status.HTTP_201_CREATED)
         new_user = User.objects.create_user(email=request.data['email'], name=request.data['name'], password=request.data['password'])
         return Response(request.data)
 
@@ -44,42 +28,12 @@ class UsersViewSetGet(mixins.ListModelMixin, GenericViewSet):
             return UserSerializer2
         else:
             return UserSerializerMini
-#
-# class
-# def UserMeInfo(request):
-#     Info = User.objects.filter(email=request.user.email)
-#     qs_json = serializers.serialize('json', Info.all())
-#     return JsonResponse({'user': qs_json})
-
-
-#
-# class UserOperation(GenericViewSet):
-
-#     serializer_class = UserLoginSerializer
-#     def LoginView(self, request):
-#         email = request.data['email']
-#         password = request.data['password']
-#         user = authenticate(username=email, password=password)
-#         if user is not None:
-#             print(request)
-#             login(request, user)
-#             self.request.session["authenticated"] = True
-#             return Response({'status_code': '200',
-#                 'info': 'success'})
-#         else:
-#             return Response({'status_code': '400',
-#                     'info': 'error'})
-#
-
 
 class UsersViewSetGetMe(mixins.ListModelMixin, GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = User.objects.all()
     serializer_class = UserSerializerMini
 
-    # def list(self, request, *args, **kwargs):
-    #     Info = User.objects.filter(email=request.user.email).values()
-    #     return JsonResponse({'user': list(Info)})
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset()).filter(email=request.user.email)
 
@@ -92,35 +46,152 @@ class UsersViewSetGetMe(mixins.ListModelMixin, GenericViewSet):
         return Response(serializer.data)
 
 
-class ActionViewSet(viewsets.ModelViewSet):
+class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Action.objects.all()
-    serializer_class = ActionSerializer
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
 
     def perform_create(self, serializer):
-        serializer.save()
+        a = serializer.save()
+        return a
 
     def create(self, request, *args, **kwargs):
         print(request.data)
-        b = request.data.copy()
-        b['user'] = request.user
-        # a = QueryDict({**request.data, ** {'user':request.user}})
-        # print(a)
-        serializer = self.get_serializer(data=b)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        task_this = self.perform_create(serializer)
+        task_this.userFrom.add(request.user)
+        ForUser = MyUser.objects.filter(id=request.data['userFor_id']).first()
+        task_this.userFor.add(ForUser)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+
+            userFrom = instance.userFrom
+            for i in userFrom.all(): user_id_from = i.id
+
+            userFor = instance.userFor
+            for i in userFor.all(): user_id_for = i.id
+
+            if instance.done == False and (user_id_from == request.user.id or user_id_for == request.user.id):
+                serializer = self.get_serializer(instance)
+                return Response(serializer.data)
+            else:
+                return Response({'status':200,
+                                 'data':'task does not exist'})
+        except Exception as e:
+            if e == status.HTTP_404_NOT_FOUND:
+                return Response({'status': 200,
+                                 'data': 'task does not exist'})
+            else:
+                return Response({'status': 666,
+                                 'data': 'error'})
+
+    def list(self, request, *args, **kwargs):
+        pass
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            user = instance.userFrom
+            for i in user.all(): user_id = i.id
+            if instance.done == False and user_id == request.user.id:
+                self.perform_destroy(instance)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({'status':200,
+                                 'data':'task does not exist'})
+        except Exception as e:
+            if e == status.HTTP_404_NOT_FOUND:
+                return Response({'status': 200,
+                                 'data': 'task does not exist'})
+            else:
+                return Response({'status': 666,
+                                 'data': 'error'})
+
+    def update(self, request, *args, **kwargs):
+        try:
+            partial = kwargs.pop('partial', False)
+            instance = self.get_object()
+            userFrom = instance.userFrom
+            for i in userFrom.all(): user_id_from = i.id
+
+            if instance.done == False and user_id_from == request.user.id:
+                serializer = self.get_serializer(instance, data=request.data, partial=partial)
+                serializer.is_valid(raise_exception=True)
+                self.perform_update(serializer)
+
+                if getattr(instance, '_prefetched_objects_cache', None):
+                    # If 'prefetch_related' has been applied to a queryset, we need to
+                    # forcibly invalidate the prefetch cache on the instance.
+                    instance._prefetched_objects_cache = {}
+
+                return Response(serializer.data)
+            else:
+                return Response({'status': 200,
+                                 'data': 'task does not exist'})
+        except Exception as e:
+            if e == status.HTTP_404_NOT_FOUND:
+                return Response({'status': 200,
+                                 'data': 'task does not exist'})
+            else:
+                return Response({'status': 666,
+                                 'data': 'error'})
+
+class TaskViewList(mixins.ListModelMixin, GenericViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = MegaTaskSerializer
+
+    def ListForMe(self, request, *args, **kwargs):
+        queryset = Task.objects.filter(userFor=request.user).filter(done=False)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def ListForYou(self, request, *args, **kwargs):
+        queryset = Task.objects.filter(userFrom=request.user).filter(done=False)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class TaskDone(APIView):
+    def post(self, request, task_id):
+        task = Task.objects.filter(id=task_id).filter(userFor=request.user).filter(done=False)
+        if task:
+            FromUser = task.first().userFrom
+            for i in FromUser.all():
+                balance_from = i.balance
+
+            FromUser.update(balance=balance_from+task.first().price)
+
+            ForUser = task.first().userFor
+            for i in ForUser.all():
+                balance_for = i.balance
+
+            FromUser.update(balance=balance_for - task.first().price)
+
+            task.update(done=True)
+
+            return Response({'status':200,
+                             'data':'success'})
+        else:
+            return Response({'status':200,
+                             'data':'task does not exist'})
+
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
-
-# class UserView(mixins.CreateModelMixin):
-#     form_class = UserCreationForm
-#
-#     def create(self, request, **extra_fields):
-#         new_user = User.objects.create_user(request.user.name, request.user.password)
-#         return new_user
 
 class MyTokenRefresh(TokenRefreshView):
     serializer_class = MyTokenObtainPairSerializer
