@@ -1,11 +1,8 @@
-import datetime
-
-import jwt
 from django.contrib.auth import get_user_model
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
-from django.db import models, router
-from django.db.models import ForeignKey, ManyToManyField
+from django.db import models
+
 
 
 class MyUserManager(BaseUserManager):
@@ -52,8 +49,7 @@ class Task(models.Model):
     userFrom = models.ManyToManyField(User, related_name='userFrom', null=True)
     userFor_id = models.IntegerField(verbose_name='userFor_id')
     done = models.BooleanField(verbose_name='done', default=False)
-    # def save(self, force_insert=False, force_update=False, using=None, update_fields=None, *args, **kwargs):
-    #     super(Task, self).save(*args, **kwargs)
+
 
     class Meta:
         db_table = 'Task'

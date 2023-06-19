@@ -81,13 +81,6 @@ class TaskSerializer(serializers.Serializer):
         instance.save()
         return instance
 
-    # user = serializers.ManyToManyField(User, null=True)
-    # user_action = UserSerializer(many=True, read_only=True)
-    #
-    # class Meta:
-    #     model = Action
-    #     fields = '__all__'
-
 class MegaTaskSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     userFrom = UserSerializerMini(many=True, allow_null=True)

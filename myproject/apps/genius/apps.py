@@ -8,10 +8,3 @@ class GeniusConfig(AppConfig):
     def ready(self):
         from . import signals
 
-# class ActionsConfig(AppConfig):
-#     name = 'Actions'
-#     verbose_name = 'Actions'
-
-    # def ready(self):
-    #     # from . import signals
-    #     send_action_notification.connect(signals.my_callback)
